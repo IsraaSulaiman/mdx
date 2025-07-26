@@ -1,0 +1,177 @@
+---
+title: "The Height Enigma - Understanding CSS Percentage Heights"
+date: "2024-01-20"
+excerpt: "Unraveling the mystery of percentage-based heights in CSS - one of the most perplexing aspects of CSS layout."
+author: "CSS Expert"
+tags: ["css", "layout", "height", "percentage", "tutorial"]
+---
+
+# The Height Enigma
+
+Unraveling the mystery of percentage-based heights in CSS
+
+One of the most perplexing and befuddling things in CSS for me, for many years, was the behaviour of percentage-based heights. Sometimes, seemingly at random, setting `height: 100%` would have no effect at all. When I finally figured out what was going on, it was like a puzzle piece snapping into place; everything made so much more sense!
+
+## The Problem
+
+You've probably encountered this scenario:
+
+```css
+.parent {
+  height: 300px;
+}
+
+.child {
+  height: 100%; /* This works! */
+}
+```
+
+But then this doesn't work:
+
+```css
+.parent {
+  /* No height specified */
+}
+
+.child {
+  height: 100%; /* This does nothing! */
+}
+```
+
+## The Root Cause
+
+The key insight is that **percentage heights require a defined height on the parent element**. This is different from percentage widths, which work relative to the parent's content area.
+
+### Why This Happens
+
+1. **Height is calculated differently**: Unlike width, height doesn't have a default reference point
+2. **Parent height must be explicit**: The parent needs a defined height for the child's percentage to work
+3. **Viewport height is special**: `100vh` works because it references the viewport, not a parent
+
+## Solutions
+
+### 1. Set a Fixed Height on Parent
+
+```css
+.parent {
+  height: 300px; /* or any specific value */
+}
+
+.child {
+  height: 100%;
+}
+```
+
+### 2. Use Viewport Height
+
+```css
+.child {
+  height: 100vh; /* 100% of viewport height */
+}
+```
+
+### 3. Use Flexbox
+
+```css
+.parent {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.child {
+  flex: 1; /* Takes remaining space */
+}
+```
+
+### 4. Use CSS Grid
+
+```css
+.parent {
+  display: grid;
+  height: 100vh;
+  grid-template-rows: 1fr;
+}
+
+.child {
+  /* Automatically fills available space */
+}
+```
+
+## The Mental Model
+
+Think of percentage heights like this:
+
+- **Width percentages**: "Take X% of the parent's content width"
+- **Height percentages**: "Take X% of the parent's explicit height"
+
+If the parent doesn't have an explicit height, there's nothing to calculate the percentage from!
+
+## Common Gotchas
+
+### 1. Body and HTML Heights
+
+```css
+/* This often doesn't work as expected */
+html, body {
+  height: 100%;
+}
+
+.container {
+  height: 100%; /* May not work if parent doesn't have height */
+}
+```
+
+### 2. Min-Height vs Height
+
+```css
+.parent {
+  min-height: 100vh; /* This works */
+}
+
+.child {
+  height: 100%; /* This works because min-height provides a reference */
+}
+```
+
+## Best Practices
+
+1. **Always define parent heights** when using percentage heights
+2. **Use viewport units** (`vh`, `vw`) when you want viewport-relative sizing
+3. **Consider modern layout methods** like Flexbox and Grid for more flexible layouts
+4. **Test across different screen sizes** to ensure your height calculations work everywhere
+
+## Real-World Example
+
+Here's a practical example of a full-height layout:
+
+```css
+/* Modern approach using CSS Grid */
+.layout {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+}
+
+.header {
+  /* Auto height based on content */
+}
+
+.main {
+  /* Takes remaining space */
+}
+
+.footer {
+  /* Auto height based on content */
+}
+```
+
+## Conclusion
+
+Understanding percentage heights in CSS comes down to one simple rule: **the parent must have a defined height**. Once you internalize this concept, height calculations become much more predictable and manageable.
+
+The key is to always think about the reference point for your percentage calculations. Whether it's a fixed height, viewport height, or the result of a layout algorithm, make sure there's a concrete value to calculate against.
+
+---
+
+*This post was inspired by the excellent CSS tutorials from [Josh Comeau's blog](https://www.joshwcomeau.com/css/).*

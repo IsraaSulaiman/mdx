@@ -1,0 +1,262 @@
+---
+title: "Container Queries Unleashed - The Future of Responsive Design"
+date: "2024-01-22"
+excerpt: "Container queries expand the universe of designs that can be implemented, giving us whole new superpowers for responsive layouts."
+author: "CSS Expert"
+tags: ["css", "container-queries", "responsive-design", "layout", "modern-css"]
+---
+
+# Container Queries Unleashed
+
+Container queries expand the universe of designs that can be implemented, giving us whole new superpowers. Now that container queries are broadly available, I think it's time we start exploring this potential!
+
+## What Are Container Queries?
+
+Container queries are like media queries, but instead of querying the viewport size, they query the size of a parent container. This allows components to adapt their layout based on their available space, not just the screen size.
+
+### The Problem with Media Queries
+
+Traditional responsive design has a fundamental limitation:
+
+```css
+/* This only considers screen size, not component context */
+@media (max-width: 768px) {
+  .card {
+    flex-direction: column;
+  }
+}
+```
+
+What if your card is in a sidebar that's only 200px wide, even on a large screen?
+
+## Container Query Syntax
+
+### 1. Define a Container
+
+```css
+.card-container {
+  container-type: inline-size;
+  /* or container-type: size; for both width and height */
+}
+```
+
+### 2. Query the Container
+
+```css
+.card {
+  display: flex;
+  gap: 1rem;
+}
+
+@container (max-width: 400px) {
+  .card {
+    flex-direction: column;
+  }
+}
+```
+
+## Real-World Examples
+
+### 1. Responsive Card Component
+
+```css
+.card-container {
+  container-type: inline-size;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 1rem;
+}
+
+@container (max-width: 500px) {
+  .card {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  
+  .card img {
+    max-width: 300px;
+    margin: 0 auto;
+  }
+}
+```
+
+### 2. Adaptive Navigation
+
+```css
+.nav-container {
+  container-type: inline-size;
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+}
+
+@container (max-width: 300px) {
+  .nav {
+    flex-direction: column;
+  }
+  
+  .nav-item {
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+  }
+}
+```
+
+### 3. Flexible Grid Layout
+
+```css
+.grid-container {
+  container-type: inline-size;
+  display: grid;
+  gap: 1rem;
+}
+
+@container (min-width: 600px) {
+  .grid-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@container (min-width: 900px) {
+  .grid-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+```
+
+## Container Query Units
+
+Container queries introduce new units that are relative to the container:
+
+```css
+.component {
+  /* Container-relative units */
+  width: 50cqw; /* 50% of container width */
+  height: 25cqh; /* 25% of container height */
+  font-size: 2cqmin; /* 2% of the smaller container dimension */
+}
+```
+
+## The Killer Pattern
+
+Here's the pattern I can't stop using:
+
+```css
+.component-wrapper {
+  container-type: inline-size;
+}
+
+.component {
+  /* Base styles */
+  display: flex;
+  gap: 1rem;
+}
+
+/* Progressive enhancement */
+@container (max-width: 400px) {
+  .component {
+    flex-direction: column;
+  }
+}
+
+@container (max-width: 200px) {
+  .component {
+    font-size: 0.9rem;
+  }
+}
+```
+
+## Browser Support
+
+Container queries are now supported in all modern browsers:
+
+- ✅ Chrome 105+
+- ✅ Firefox 110+
+- ✅ Safari 16+
+- ✅ Edge 105+
+
+## Fallback Strategy
+
+For older browsers, you can use a fallback:
+
+```css
+.component {
+  /* Fallback for browsers without container queries */
+  display: flex;
+  flex-direction: column;
+}
+
+@supports (container-type: inline-size) {
+  .component {
+    flex-direction: row;
+  }
+  
+  @container (max-width: 400px) {
+    .component {
+      flex-direction: column;
+    }
+  }
+}
+```
+
+## Best Practices
+
+1. **Use semantic container names**: `card-container`, `sidebar-container`
+2. **Start with mobile-first**: Design for the smallest container size first
+3. **Use logical breakpoints**: Consider the content, not arbitrary screen sizes
+4. **Test in different contexts**: Put your components in various container sizes
+
+## Advanced Techniques
+
+### Container Query with CSS Grid
+
+```css
+.layout {
+  container-type: inline-size;
+  display: grid;
+  gap: 1rem;
+}
+
+@container (min-width: 600px) {
+  .layout {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+}
+```
+
+### Container Query with CSS Custom Properties
+
+```css
+.component {
+  --spacing: 1rem;
+  --columns: 1;
+}
+
+@container (min-width: 400px) {
+  .component {
+    --spacing: 1.5rem;
+    --columns: 2;
+  }
+}
+
+.component {
+  display: grid;
+  grid-template-columns: repeat(var(--columns), 1fr);
+  gap: var(--spacing);
+}
+```
+
+## Conclusion
+
+Container queries represent a fundamental shift in how we think about responsive design. Instead of designing for screen sizes, we can now design for component contexts. This opens up incredible possibilities for creating truly flexible, reusable components.
+
+The key is to start thinking about your components as self-contained units that can adapt to any container size, not just viewport sizes. This mindset will revolutionize how you approach responsive design.
+
+---
+
+*This post was inspired by the excellent CSS tutorials from [Josh Comeau's blog](https://www.joshwcomeau.com/css/).*
