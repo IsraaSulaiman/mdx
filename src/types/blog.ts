@@ -20,4 +20,16 @@ export interface BlogPostFrontMatter {
 export interface BlogPostMeta {
   slug: string;
   frontMatter: BlogPostFrontMatter;
+}
+
+export interface Category {
+  name: string;
+  slug: string;
+  postCount: number;
+}
+
+export interface CategoryPostMeta {
+  slug: string;
+  frontMatter: BlogPostFrontMatter;
+  category: string;
 } 

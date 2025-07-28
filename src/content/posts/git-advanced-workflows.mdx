@@ -1,0 +1,531 @@
+---
+title: "Advanced Git Workflows - Beyond the Basics"
+date: "2024-01-17"
+excerpt: "Master advanced Git workflows including Git Flow, feature branches, rebasing, cherry-picking, and collaborative development strategies."
+author: "Git Expert"
+tags: ["git", "version-control", "development", "workflow", "collaboration"]
+---
+
+# Advanced Git Workflows - Beyond the Basics
+
+Git is more than just version control—it's a powerful tool for collaborative development. Let's explore advanced workflows and techniques that will make you a Git power user.
+
+## Git Flow Workflow
+
+Git Flow is a branching model designed for projects with scheduled releases:
+
+### Branch Structure
+
+```bash
+# Main branches
+main          # Production-ready code
+develop       # Integration branch for features
+
+# Supporting branches
+feature/*     # New features
+release/*     # Preparing releases
+hotfix/*      # Critical production fixes
+```
+
+### Workflow Commands
+
+```bash
+# Initialize Git Flow
+git flow init
+
+# Start a new feature
+git flow feature start user-authentication
+# Creates: feature/user-authentication from develop
+
+# Finish a feature
+git flow feature finish user-authentication
+# Merges feature into develop and deletes feature branch
+
+# Start a release
+git flow release start 1.0.0
+# Creates: release/1.0.0 from develop
+
+# Finish a release
+git flow release finish 1.0.0
+# Merges release into main and develop, creates tag
+
+# Start a hotfix
+git flow hotfix start critical-bug
+# Creates: hotfix/critical-bug from main
+
+# Finish a hotfix
+git flow hotfix finish critical-bug
+# Merges hotfix into main and develop, creates tag
+```
+
+## Feature Branch Workflow
+
+A simpler alternative to Git Flow:
+
+```bash
+# Create feature branch from main
+git checkout main
+git pull origin main
+git checkout -b feature/user-dashboard
+
+# Work on feature
+git add .
+git commit -m "Add user dashboard components"
+
+# Push feature branch
+git push origin feature/user-dashboard
+
+# Create pull request on GitHub/GitLab
+# After review and approval, merge to main
+```
+
+## Advanced Branching Strategies
+
+### Trunk-Based Development
+
+```bash
+# Work directly on main with short-lived feature branches
+git checkout main
+git pull origin main
+git checkout -b feature/quick-fix
+
+# Make changes and commit
+git add .
+git commit -m "Fix login validation"
+
+# Rebase on main before merging
+git checkout main
+git pull origin main
+git checkout feature/quick-fix
+git rebase main
+
+# Merge to main
+git checkout main
+git merge feature/quick-fix
+git push origin main
+git branch -d feature/quick-fix
+```
+
+### Environment-Specific Branches
+
+```bash
+# Production branch
+main
+
+# Staging branch
+staging
+
+# Development branch
+develop
+
+# Feature branches
+feature/*
+
+# Hotfix branches
+hotfix/*
+```
+
+## Advanced Git Commands
+
+### Interactive Rebase
+
+```bash
+# Interactive rebase to clean up commits
+git rebase -i HEAD~3
+
+# Commands in interactive rebase:
+# pick   - use commit as-is
+# reword - use commit, but edit commit message
+# edit   - use commit, but stop for amending
+# squash - use commit, but meld into previous commit
+# fixup  - like squash, but discard commit message
+# drop   - remove commit
+
+# Example interactive rebase file:
+pick f7f3f6d Add user authentication
+squash 310154e Fix typo in auth message
+pick a5f4a0d Add password validation
+```
+
+### Cherry-Picking
+
+```bash
+# Apply specific commits to current branch
+git cherry-pick <commit-hash>
+
+# Cherry-pick multiple commits
+git cherry-pick <commit1> <commit2> <commit3>
+
+# Cherry-pick a range of commits
+git cherry-pick <start-commit>..<end-commit>
+
+# Cherry-pick with conflict resolution
+git cherry-pick --continue
+git cherry-pick --abort
+git cherry-pick --skip
+```
+
+### Stashing
+
+```bash
+# Stash current changes
+git stash
+
+# Stash with message
+git stash push -m "WIP: user authentication"
+
+# List stashes
+git stash list
+
+# Apply most recent stash
+git stash pop
+
+# Apply specific stash
+git stash apply stash@{1}
+
+# Drop stash
+git stash drop stash@{0}
+
+# Clear all stashes
+git stash clear
+```
+
+## Collaborative Development
+
+### Pull Request Workflow
+
+```bash
+# Fork repository (on GitHub/GitLab)
+# Clone your fork
+git clone https://github.com/your-username/project.git
+
+# Add upstream remote
+git remote add upstream https://github.com/original/project.git
+
+# Create feature branch
+git checkout -b feature/new-feature
+
+# Make changes and commit
+git add .
+git commit -m "Add new feature"
+
+# Push to your fork
+git push origin feature/new-feature
+
+# Create pull request
+# After review and approval, maintainer merges
+```
+
+### Code Review Process
+
+```bash
+# Reviewer checks out PR branch
+git fetch origin
+git checkout -b feature/new-feature origin/feature/new-feature
+
+# Review code and test
+# Add review comments on GitHub/GitLab
+
+# Author addresses feedback
+git add .
+git commit -m "Address review feedback"
+git push origin feature/new-feature
+
+# Reviewer approves and merges
+```
+
+## Advanced Merging Strategies
+
+### Merge vs Rebase
+
+```bash
+# Merge (preserves history)
+git checkout main
+git merge feature/branch
+# Creates merge commit
+
+# Rebase (linear history)
+git checkout feature/branch
+git rebase main
+git checkout main
+git merge feature/branch
+# Creates fast-forward merge
+```
+
+### Squash Merging
+
+```bash
+# Squash all commits into one
+git checkout main
+git merge --squash feature/branch
+git commit -m "Add feature: user authentication"
+```
+
+### Three-Way Merge
+
+```bash
+# Resolve conflicts manually
+git merge feature/branch
+# Edit conflicted files
+git add .
+git commit -m "Resolve merge conflicts"
+```
+
+## Git Hooks
+
+### Pre-commit Hook
+
+```bash
+#!/bin/sh
+# .git/hooks/pre-commit
+
+# Run tests
+npm test
+
+# Run linting
+npm run lint
+
+# Check for console.log statements
+if git diff --cached | grep -i "console.log"; then
+  echo "Error: console.log statements found in staged files"
+  exit 1
+fi
+```
+
+### Pre-push Hook
+
+```bash
+#!/bin/sh
+# .git/hooks/pre-push
+
+# Run full test suite
+npm run test:full
+
+# Check bundle size
+npm run build:analyze
+
+# Run security audit
+npm audit
+```
+
+### Commit Message Hook
+
+```bash
+#!/bin/sh
+# .git/hooks/commit-msg
+
+# Check commit message format
+commit_regex='^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .{1,50}'
+
+if ! grep -qE "$commit_regex" "$1"; then
+    echo "Error: Invalid commit message format"
+    echo "Expected format: type(scope): description"
+    echo "Types: feat, fix, docs, style, refactor, test, chore"
+    exit 1
+fi
+```
+
+## Git Aliases
+
+### Useful Aliases
+
+```bash
+# Add to .gitconfig
+[alias]
+    # Show commit history
+    lg = log --oneline --graph --decorate --all
+    
+    # Show status
+    st = status
+    
+    # Show last commit
+    last = log -1 HEAD
+    
+    # Show changes in last commit
+    last-diff = diff HEAD~1
+    
+    # Undo last commit
+    undo = reset --soft HEAD~1
+    
+    # Show branch info
+    br = branch -v
+    
+    # Show remote branches
+    brr = branch -r
+    
+    # Show all branches
+    bra = branch -a
+    
+    # Delete merged branches
+    cleanup = "!git branch --merged | grep -v '\\*\\|main\\|develop' | xargs -n 1 git branch -d"
+    
+    # Show file history
+    filelog = log --follow
+    
+    # Show changes in file
+    filediff = diff HEAD~1
+```
+
+## Git Submodules
+
+### Managing Submodules
+
+```bash
+# Add submodule
+git submodule add https://github.com/user/repo.git path/to/submodule
+
+# Clone repository with submodules
+git clone --recursive https://github.com/user/repo.git
+
+# Update submodules
+git submodule update --remote
+
+# Initialize submodules
+git submodule init
+git submodule update
+```
+
+## Git Worktree
+
+### Multiple Working Directories
+
+```bash
+# Create new worktree
+git worktree add ../feature-branch feature/new-feature
+
+# List worktrees
+git worktree list
+
+# Remove worktree
+git worktree remove ../feature-branch
+
+# Prune worktrees
+git worktree prune
+```
+
+## Advanced Git Tools
+
+### Git Bisect
+
+```bash
+# Find the commit that introduced a bug
+git bisect start
+git bisect bad HEAD
+git bisect good v1.0.0
+
+# Test current commit
+# If buggy:
+git bisect bad
+# If working:
+git bisect good
+
+# Continue until Git finds the problematic commit
+git bisect reset
+```
+
+### Git Reflog
+
+```bash
+# Show reflog
+git reflog
+
+# Recover lost commits
+git checkout -b recovery-branch HEAD@{5}
+
+# Reset to previous state
+git reset --hard HEAD@{1}
+```
+
+### Git Blame
+
+```bash
+# Show who changed each line
+git blame filename.js
+
+# Show blame for specific lines
+git blame -L 10,20 filename.js
+
+# Show blame with context
+git blame -C filename.js
+```
+
+## Best Practices
+
+### Commit Messages
+
+```bash
+# Conventional Commits format
+feat(auth): add OAuth2 authentication
+fix(api): resolve user data fetching issue
+docs(readme): update installation instructions
+style(ui): format code according to style guide
+refactor(utils): extract common validation logic
+test(auth): add unit tests for login function
+chore(deps): update dependencies to latest versions
+```
+
+### Branch Naming
+
+```bash
+# Feature branches
+feature/user-authentication
+feature/add-payment-gateway
+
+# Bug fixes
+fix/login-validation
+fix/api-timeout-issue
+
+# Hotfixes
+hotfix/security-vulnerability
+hotfix/critical-bug
+
+# Releases
+release/v1.2.0
+release/v2.0.0
+```
+
+### Repository Management
+
+```bash
+# Keep main branch clean
+# Use feature branches for development
+# Require pull requests for merging
+# Use code reviews
+# Run automated tests
+# Maintain clean commit history
+# Use meaningful commit messages
+# Tag releases
+# Document workflows
+```
+
+## Troubleshooting
+
+### Common Issues
+
+```bash
+# Undo last commit
+git reset --soft HEAD~1
+
+# Undo last commit and changes
+git reset --hard HEAD~1
+
+# Recover deleted branch
+git reflog
+git checkout -b recovery-branch <commit-hash>
+
+# Fix merge conflicts
+git status
+# Edit conflicted files
+git add .
+git commit -m "Resolve merge conflicts"
+
+# Clean up repository
+git gc
+git prune
+```
+
+## Conclusion
+
+Advanced Git workflows enable efficient collaborative development. Choose the workflow that best fits your team size, project complexity, and release cycle. Remember that Git is a tool—use it to enhance your development process, not complicate it.
+
+The key to successful Git usage is consistency, communication, and continuous learning. Master these advanced techniques to become a more effective developer and team member. 

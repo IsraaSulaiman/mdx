@@ -1,0 +1,567 @@
+---
+title: "Web Performance Optimization - A Complete Guide for 2024"
+date: "2024-01-18"
+excerpt: "Learn essential web performance optimization techniques including Core Web Vitals, lazy loading, code splitting, and modern optimization strategies."
+author: "Performance Expert"
+tags: ["performance", "web-development", "frontend", "optimization", "core-web-vitals"]
+---
+
+# Web Performance Optimization - A Complete Guide for 2024
+
+Web performance is crucial for user experience, SEO, and business success. In this comprehensive guide, we'll explore modern optimization techniques that will make your websites faster and more efficient.
+
+## Core Web Vitals
+
+Google's Core Web Vitals are key metrics that measure user experience:
+
+### Largest Contentful Paint (LCP)
+
+LCP measures the time it takes for the largest content element to become visible:
+
+```javascript
+// Monitor LCP
+new PerformanceObserver((entryList) => {
+  for (const entry of entryList.getEntries()) {
+    console.log('LCP:', entry.startTime);
+    
+    if (entry.startTime > 2500) {
+      console.warn('LCP is too slow!');
+    }
+  }
+}).observe({ entryTypes: ['largest-contentful-paint'] });
+```
+
+### First Input Delay (FID)
+
+FID measures the time from user interaction to browser response:
+
+```javascript
+// Monitor FID
+new PerformanceObserver((entryList) => {
+  for (const entry of entryList.getEntries()) {
+    console.log('FID:', entry.processingStart - entry.startTime);
+    
+    if (entry.processingStart - entry.startTime > 100) {
+      console.warn('FID is too slow!');
+    }
+  }
+}).observe({ entryTypes: ['first-input'] });
+```
+
+### Cumulative Layout Shift (CLS)
+
+CLS measures visual stability:
+
+```javascript
+// Monitor CLS
+let clsValue = 0;
+new PerformanceObserver((entryList) => {
+  for (const entry of entryList.getEntries()) {
+    if (!entry.hadRecentInput) {
+      clsValue += entry.value;
+    }
+  }
+  
+  if (clsValue > 0.1) {
+    console.warn('CLS is too high!');
+  }
+}).observe({ entryTypes: ['layout-shift'] });
+```
+
+## Image Optimization
+
+### Modern Image Formats
+
+```html
+<!-- WebP with fallback -->
+<picture>
+  <source srcset="image.webp" type="image/webp">
+  <source srcset="image.avif" type="image/avif">
+  <img src="image.jpg" alt="Description" loading="lazy">
+</picture>
+```
+
+### Responsive Images
+
+```html
+<!-- Responsive images with srcset -->
+<img 
+  src="image-800w.jpg"
+  srcset="
+    image-400w.jpg 400w,
+    image-800w.jpg 800w,
+    image-1200w.jpg 1200w
+  "
+  sizes="(max-width: 600px) 400px, (max-width: 1200px) 800px, 1200px"
+  alt="Responsive image"
+  loading="lazy"
+>
+```
+
+### Lazy Loading
+
+```javascript
+// Intersection Observer for custom lazy loading
+const imageObserver = new IntersectionObserver((entries, observer) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const img = entry.target;
+      img.src = img.dataset.src;
+      img.classList.remove('lazy');
+      observer.unobserve(img);
+    }
+  });
+});
+
+document.querySelectorAll('img[data-src]').forEach(img => {
+  imageObserver.observe(img);
+});
+```
+
+## Code Splitting
+
+### Dynamic Imports
+
+```javascript
+// Route-based code splitting
+const HomePage = lazy(() => import('./pages/HomePage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+
+// Component-based splitting
+const HeavyComponent = lazy(() => import('./components/HeavyComponent'));
+
+// Usage with Suspense
+function App() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+      </Routes>
+    </Suspense>
+  );
+}
+```
+
+### Webpack Bundle Analysis
+
+```javascript
+// webpack.config.js
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+
+module.exports = {
+  plugins: [
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',
+      openAnalyzer: false,
+    }),
+  ],
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+        common: {
+          name: 'common',
+          minChunks: 2,
+          chunks: 'all',
+          enforce: true,
+        },
+      },
+    },
+  },
+};
+```
+
+## Caching Strategies
+
+### Service Worker Caching
+
+```javascript
+// service-worker.js
+const CACHE_NAME = 'my-app-v1';
+const urlsToCache = [
+  '/',
+  '/static/js/main.bundle.js',
+  '/static/css/main.css',
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(urlsToCache))
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        // Return cached version or fetch from network
+        return response || fetch(event.request);
+      })
+  );
+});
+```
+
+### HTTP Caching Headers
+
+```javascript
+// Express.js example
+app.use('/static', express.static('public', {
+  maxAge: '1y',
+  etag: true,
+  lastModified: true,
+}));
+
+// API responses
+app.get('/api/data', (req, res) => {
+  res.set({
+    'Cache-Control': 'public, max-age=3600',
+    'ETag': generateETag(data),
+  });
+  res.json(data);
+});
+```
+
+## Critical CSS
+
+### Extract Critical CSS
+
+```javascript
+// Extract critical CSS for above-the-fold content
+const critical = require('critical');
+
+critical.generate({
+  src: 'index.html',
+  target: {
+    css: 'critical.css',
+    html: 'index-critical.html',
+  },
+  width: 1300,
+  height: 900,
+});
+```
+
+### Inline Critical CSS
+
+```html
+<!-- Inline critical CSS -->
+<style>
+  /* Critical styles for above-the-fold content */
+  .header { background: #fff; }
+  .hero { padding: 2rem; }
+  .nav { display: flex; }
+</style>
+
+<!-- Load non-critical CSS asynchronously -->
+<link rel="preload" href="styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="styles.css"></noscript>
+```
+
+## Resource Hints
+
+### Preload Critical Resources
+
+```html
+<!-- Preload critical resources -->
+<link rel="preload" href="critical.js" as="script">
+<link rel="preload" href="critical.css" as="style">
+<link rel="preload" href="hero-image.jpg" as="image">
+
+<!-- Prefetch non-critical resources -->
+<link rel="prefetch" href="about-page.js">
+<link rel="prefetch" href="contact-page.js">
+
+<!-- Preconnect to external domains -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://cdn.example.com">
+```
+
+### DNS Prefetch
+
+```html
+<!-- DNS prefetch for external resources -->
+<link rel="dns-prefetch" href="//fonts.googleapis.com">
+<link rel="dns-prefetch" href="//cdn.example.com">
+<link rel="dns-prefetch" href="//api.example.com">
+```
+
+## JavaScript Optimization
+
+### Tree Shaking
+
+```javascript
+// ES6 modules enable tree shaking
+import { debounce } from 'lodash-es'; // Only imports debounce
+import { format } from 'date-fns'; // Only imports format
+
+// Avoid importing entire libraries
+// ❌ Bad
+import _ from 'lodash';
+
+// ✅ Good
+import debounce from 'lodash/debounce';
+```
+
+### Code Minification
+
+```javascript
+// webpack.config.js
+const TerserPlugin = require('terser-webpack-plugin');
+
+module.exports = {
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          compress: {
+            drop_console: true, // Remove console.log in production
+            drop_debugger: true,
+          },
+        },
+      }),
+    ],
+  },
+};
+```
+
+### Memory Management
+
+```javascript
+// Clean up event listeners
+class Component {
+  constructor() {
+    this.handleResize = this.handleResize.bind(this);
+    window.addEventListener('resize', this.handleResize);
+  }
+  
+  destroy() {
+    window.removeEventListener('resize', this.handleResize);
+  }
+}
+
+// Use WeakMap for private data
+const privateData = new WeakMap();
+
+class MyClass {
+  constructor() {
+    privateData.set(this, { secret: 'data' });
+  }
+  
+  getSecret() {
+    return privateData.get(this).secret;
+  }
+}
+```
+
+## Database and API Optimization
+
+### Database Query Optimization
+
+```javascript
+// Use indexes for frequently queried fields
+db.collection('users').createIndex({ email: 1 });
+db.collection('posts').createIndex({ authorId: 1, createdAt: -1 });
+
+// Limit results and use pagination
+const posts = await Post.find({ authorId })
+  .limit(10)
+  .skip(page * 10)
+  .select('title excerpt createdAt')
+  .lean(); // Return plain objects instead of Mongoose documents
+```
+
+### API Response Optimization
+
+```javascript
+// Compress API responses
+app.use(compression());
+
+// Use GraphQL for efficient data fetching
+const typeDefs = gql`
+  type User {
+    id: ID!
+    name: String!
+    email: String!
+    posts: [Post!]!
+  }
+  
+  type Post {
+    id: ID!
+    title: String!
+    content: String!
+  }
+`;
+
+// Implement cursor-based pagination
+const resolvers = {
+  Query: {
+    posts: async (_, { first, after }) => {
+      const posts = await Post.find({
+        _id: { $gt: after }
+      })
+      .limit(first + 1)
+      .sort({ _id: 1 });
+      
+      const hasNextPage = posts.length > first;
+      const edges = posts.slice(0, first);
+      
+      return {
+        edges,
+        pageInfo: {
+          hasNextPage,
+          endCursor: edges[edges.length - 1]?._id,
+        },
+      };
+    },
+  },
+};
+```
+
+## Monitoring and Analytics
+
+### Real User Monitoring (RUM)
+
+```javascript
+// Custom performance monitoring
+class PerformanceMonitor {
+  constructor() {
+    this.metrics = {};
+    this.init();
+  }
+  
+  init() {
+    // Monitor Core Web Vitals
+    this.observeLCP();
+    this.observeFID();
+    this.observeCLS();
+    
+    // Monitor custom metrics
+    this.observeCustomMetrics();
+  }
+  
+  observeLCP() {
+    new PerformanceObserver((entryList) => {
+      const entries = entryList.getEntries();
+      const lastEntry = entries[entries.length - 1];
+      this.metrics.lcp = lastEntry.startTime;
+      this.sendMetrics();
+    }).observe({ entryTypes: ['largest-contentful-paint'] });
+  }
+  
+  sendMetrics() {
+    // Send to analytics service
+    navigator.sendBeacon('/api/metrics', JSON.stringify(this.metrics));
+  }
+}
+```
+
+### Error Tracking
+
+```javascript
+// Global error handler
+window.addEventListener('error', (event) => {
+  const errorData = {
+    message: event.message,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno,
+    stack: event.error?.stack,
+    userAgent: navigator.userAgent,
+    url: window.location.href,
+    timestamp: new Date().toISOString(),
+  };
+  
+  // Send to error tracking service
+  navigator.sendBeacon('/api/errors', JSON.stringify(errorData));
+});
+
+// Promise rejection handler
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+  // Handle promise rejections
+});
+```
+
+## Performance Budgets
+
+### Set Performance Budgets
+
+```javascript
+// webpack.config.js
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+
+module.exports = {
+  performance: {
+    hints: 'error',
+    maxEntrypointSize: 512000, // 500KB
+    maxAssetSize: 512000, // 500KB
+  },
+  plugins: [
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',
+      generateStatsFile: true,
+    }),
+  ],
+};
+```
+
+### Lighthouse CI
+
+```yaml
+# .lighthouserc.js
+module.exports = {
+  ci: {
+    collect: {
+      url: ['http://localhost:3000'],
+      numberOfRuns: 3,
+    },
+    assert: {
+      assertions: {
+        'categories:performance': ['warn', { minScore: 0.9 }],
+        'categories:accessibility': ['error', { minScore: 0.9 }],
+        'first-contentful-paint': ['warn', { maxNumericValue: 2000 }],
+        'largest-contentful-paint': ['error', { maxNumericValue: 2500 }],
+      },
+    },
+    upload: {
+      target: 'temporary-public-storage',
+    },
+  },
+};
+```
+
+## Best Practices Summary
+
+1. **Optimize images** with modern formats and lazy loading
+2. **Implement code splitting** for better initial load times
+3. **Use caching strategies** for static assets and API responses
+4. **Monitor Core Web Vitals** and set performance budgets
+5. **Optimize critical rendering path** with critical CSS
+6. **Use resource hints** for faster resource loading
+7. **Implement proper error tracking** and monitoring
+8. **Optimize database queries** and API responses
+9. **Use tree shaking** and code minification
+10. **Set up performance budgets** and automated testing
+
+## Tools and Resources
+
+- **Lighthouse**: Performance auditing
+- **WebPageTest**: Detailed performance analysis
+- **Chrome DevTools**: Performance profiling
+- **Bundle Analyzer**: Bundle size analysis
+- **Lighthouse CI**: Automated performance testing
+
+## Conclusion
+
+Web performance optimization is an ongoing process that requires monitoring, testing, and continuous improvement. By implementing these techniques and following best practices, you can create fast, efficient, and user-friendly web applications.
+
+Remember that performance is not just about speed—it's about providing the best possible user experience while maintaining code quality and maintainability. 

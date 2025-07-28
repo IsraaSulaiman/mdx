@@ -1,0 +1,444 @@
+---
+title: "Modern JavaScript Features You Should Know in 2024"
+date: "2024-01-19"
+excerpt: "Explore the latest JavaScript features including optional chaining, nullish coalescing, private fields, and more ES2024 features."
+author: "JavaScript Developer"
+tags: ["javascript", "es6", "es2024", "programming", "web-development"]
+---
+
+# Modern JavaScript Features You Should Know in 2024
+
+JavaScript has evolved significantly over the past decade. Let's explore the most important modern features that every developer should know and use in 2024.
+
+## Optional Chaining (?.)
+
+Optional chaining allows you to safely access nested properties without throwing errors:
+
+```javascript
+// Before ES2020
+const user = response?.data?.user;
+const name = user && user.profile && user.profile.name;
+
+// With optional chaining
+const name = response?.data?.user?.profile?.name;
+
+// Function calls
+const result = api?.getData?.();
+
+// Array access
+const firstItem = array?.[0];
+```
+
+### Real-world Example
+
+```javascript
+// API response handling
+const handleUserData = (response) => {
+  const userName = response?.data?.user?.name ?? 'Anonymous';
+  const userEmail = response?.data?.user?.email;
+  const userPosts = response?.data?.user?.posts?.length ?? 0;
+  
+  console.log(`User: ${userName}, Posts: ${userPosts}`);
+  
+  if (userEmail) {
+    sendWelcomeEmail(userEmail);
+  }
+};
+```
+
+## Nullish Coalescing (??)
+
+The nullish coalescing operator returns the right-hand operand when the left-hand operand is null or undefined:
+
+```javascript
+// Before
+const value = someValue || defaultValue; // Falsy values trigger fallback
+
+// With nullish coalescing
+const value = someValue ?? defaultValue; // Only null/undefined trigger fallback
+
+// Examples
+0 || 42;        // 42 (0 is falsy)
+0 ?? 42;        // 0 (0 is not nullish)
+
+'' || 'default'; // 'default' (empty string is falsy)
+'' ?? 'default'; // '' (empty string is not nullish)
+
+false || true;   // true (false is falsy)
+false ?? true;   // false (false is not nullish)
+```
+
+### Configuration Example
+
+```javascript
+const config = {
+  apiUrl: process.env.API_URL ?? 'https://api.example.com',
+  timeout: process.env.TIMEOUT ?? 5000,
+  retries: process.env.RETRIES ?? 3,
+  debug: process.env.DEBUG ?? false,
+};
+```
+
+## Private Class Fields (#)
+
+Private fields provide true encapsulation in JavaScript classes:
+
+```javascript
+class BankAccount {
+  #balance = 0;           // Private field
+  #transactions = [];     // Private field
+  
+  constructor(initialBalance = 0) {
+    this.#balance = initialBalance;
+  }
+  
+  deposit(amount) {
+    if (amount > 0) {
+      this.#balance += amount;
+      this.#addTransaction('deposit', amount);
+      return true;
+    }
+    return false;
+  }
+  
+  withdraw(amount) {
+    if (amount > 0 && amount <= this.#balance) {
+      this.#balance -= amount;
+      this.#addTransaction('withdraw', amount);
+      return true;
+    }
+    return false;
+  }
+  
+  getBalance() {
+    return this.#balance;
+  }
+  
+  #addTransaction(type, amount) {  // Private method
+    this.#transactions.push({
+      type,
+      amount,
+      timestamp: new Date(),
+    });
+  }
+  
+  getTransactionHistory() {
+    return [...this.#transactions]; // Return copy
+  }
+}
+```
+
+## Top-level await
+
+You can now use await at the top level of modules:
+
+```javascript
+// config.js
+const response = await fetch('/api/config');
+const config = await response.json();
+
+export default config;
+
+// main.js
+import config from './config.js';
+
+console.log('App configured with:', config);
+```
+
+### Dynamic Imports with await
+
+```javascript
+// Lazy load modules
+const loadModule = async (moduleName) => {
+  try {
+    const module = await import(`./modules/${moduleName}.js`);
+    return module.default;
+  } catch (error) {
+    console.error(`Failed to load module: ${moduleName}`, error);
+    return null;
+  }
+};
+
+// Usage
+const userModule = await loadModule('user');
+if (userModule) {
+  userModule.init();
+}
+```
+
+## Array Methods
+
+### Array.prototype.at()
+
+Access array elements with negative indices:
+
+```javascript
+const array = [1, 2, 3, 4, 5];
+
+array.at(0);   // 1
+array.at(-1);  // 5 (last element)
+array.at(-2);  // 4 (second to last)
+
+// Before ES2022
+array[array.length - 1]; // 5
+array[array.length - 2]; // 4
+```
+
+### Array.prototype.findLast()
+
+Find the last element that satisfies a condition:
+
+```javascript
+const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+// Find last even number
+const lastEven = numbers.findLast(num => num % 2 === 0); // 10
+
+// Find last number greater than 5
+const lastGreaterThan5 = numbers.findLast(num => num > 5); // 10
+```
+
+### Array.prototype.toReversed()
+
+Create a reversed copy without mutating the original:
+
+```javascript
+const original = [1, 2, 3, 4, 5];
+const reversed = original.toReversed(); // [5, 4, 3, 2, 1]
+
+console.log(original); // [1, 2, 3, 4, 5] (unchanged)
+console.log(reversed); // [5, 4, 3, 2, 1]
+```
+
+## Object Methods
+
+### Object.hasOwn()
+
+A safer alternative to `hasOwnProperty`:
+
+```javascript
+const obj = { name: 'John', age: 30 };
+
+// Before
+obj.hasOwnProperty('name'); // true
+Object.prototype.hasOwnProperty.call(obj, 'name'); // true
+
+// With Object.hasOwn()
+Object.hasOwn(obj, 'name'); // true
+Object.hasOwn(obj, 'toString'); // false (inherited property)
+```
+
+### Object.groupBy() (ES2024)
+
+Group array elements by a key:
+
+```javascript
+const users = [
+  { name: 'Alice', age: 25, city: 'NYC' },
+  { name: 'Bob', age: 30, city: 'LA' },
+  { name: 'Charlie', age: 25, city: 'NYC' },
+  { name: 'Diana', age: 35, city: 'LA' },
+];
+
+// Group by age
+const byAge = Object.groupBy(users, user => user.age);
+// {
+//   25: [{ name: 'Alice', age: 25, city: 'NYC' }, { name: 'Charlie', age: 25, city: 'NYC' }],
+//   30: [{ name: 'Bob', age: 30, city: 'LA' }],
+//   35: [{ name: 'Diana', age: 35, city: 'LA' }]
+// }
+
+// Group by city
+const byCity = Object.groupBy(users, user => user.city);
+// {
+//   'NYC': [{ name: 'Alice', age: 25, city: 'NYC' }, { name: 'Charlie', age: 25, city: 'NYC' }],
+//   'LA': [{ name: 'Bob', age: 30, city: 'LA' }, { name: 'Diana', age: 35, city: 'LA' }]
+// }
+```
+
+## Template Literals
+
+### Tagged Templates
+
+```javascript
+function highlight(strings, ...values) {
+  let result = '';
+  strings.forEach((string, i) => {
+    result += string;
+    if (i < values.length) {
+      result += `<span class="highlight">${values[i]}</span>`;
+    }
+  });
+  return result;
+}
+
+const name = 'John';
+const age = 30;
+const html = highlight`Hello ${name}, you are ${age} years old!`;
+// "Hello <span class="highlight">John</span>, you are <span class="highlight">30</span> years old!"
+```
+
+### SQL-like queries
+
+```javascript
+function sql(strings, ...values) {
+  return strings.reduce((result, string, i) => {
+    return result + string + (values[i] || '');
+  }, '');
+}
+
+const table = 'users';
+const id = 123;
+const query = sql`SELECT * FROM ${table} WHERE id = ${id}`;
+// "SELECT * FROM users WHERE id = 123"
+```
+
+## Destructuring
+
+### Nested Destructuring
+
+```javascript
+const user = {
+  id: 1,
+  name: 'John',
+  profile: {
+    email: 'john@example.com',
+    avatar: 'avatar.jpg',
+    preferences: {
+      theme: 'dark',
+      notifications: true
+    }
+  }
+};
+
+const {
+  name,
+  profile: { email, preferences: { theme } }
+} = user;
+
+console.log(name, email, theme); // "John", "john@example.com", "dark"
+```
+
+### Array Destructuring with Rest
+
+```javascript
+const [first, second, ...rest] = [1, 2, 3, 4, 5];
+console.log(first, second, rest); // 1, 2, [3, 4, 5]
+
+// Skip elements
+const [a, , c, ...remaining] = [1, 2, 3, 4, 5];
+console.log(a, c, remaining); // 1, 3, [4, 5]
+```
+
+## Modules
+
+### Dynamic Imports
+
+```javascript
+// Lazy loading
+const loadComponent = async (componentName) => {
+  const module = await import(`./components/${componentName}.js`);
+  return module.default;
+};
+
+// Usage
+const Button = await loadComponent('Button');
+const Modal = await loadComponent('Modal');
+```
+
+### Re-exports
+
+```javascript
+// utils/index.js
+export { default as formatDate } from './date.js';
+export { default as validateEmail } from './validation.js';
+export { default as apiClient } from './api.js';
+
+// Usage
+import { formatDate, validateEmail, apiClient } from './utils/index.js';
+```
+
+## Error Handling
+
+### Error Cause
+
+```javascript
+async function fetchUserData(userId) {
+  try {
+    const response = await fetch(`/api/users/${userId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch user data', {
+        cause: { status: response.status, statusText: response.statusText }
+      });
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching user:', error.message);
+    console.error('Cause:', error.cause);
+    throw error;
+  }
+}
+```
+
+## Performance Features
+
+### WeakRef and FinalizationRegistry
+
+```javascript
+// WeakRef for caching
+class Cache {
+  constructor() {
+    this.cache = new Map();
+  }
+  
+  get(key) {
+    const ref = this.cache.get(key);
+    if (ref) {
+      const value = ref.deref();
+      if (value) {
+        return value;
+      } else {
+        this.cache.delete(key);
+      }
+    }
+    return null;
+  }
+  
+  set(key, value) {
+    this.cache.set(key, new WeakRef(value));
+  }
+}
+
+// FinalizationRegistry for cleanup
+const registry = new FinalizationRegistry((heldValue) => {
+  console.log(`Object with value ${heldValue} has been garbage collected`);
+});
+
+const obj = { data: 'important data' };
+registry.register(obj, 'my-important-object');
+```
+
+## Best Practices
+
+1. **Use optional chaining** for safe property access
+2. **Prefer nullish coalescing** over logical OR for defaults
+3. **Use private fields** for true encapsulation
+4. **Leverage top-level await** for module initialization
+5. **Use modern array methods** for cleaner code
+6. **Implement proper error handling** with error cause
+7. **Use dynamic imports** for code splitting
+
+## Browser Support
+
+Most modern features are supported in all current browsers:
+
+- **Optional Chaining**: Chrome 80+, Firefox 72+, Safari 13.1+
+- **Nullish Coalescing**: Chrome 80+, Firefox 72+, Safari 13.1+
+- **Private Fields**: Chrome 74+, Firefox 90+, Safari 15+
+- **Top-level await**: Chrome 89+, Firefox 89+, Safari 15+
+
+## Conclusion
+
+Modern JavaScript features make the language more powerful, safer, and easier to use. By adopting these features, you can write more maintainable and expressive code while avoiding common pitfalls.
+
+Stay updated with the latest ECMAScript proposals and consider using a transpiler like Babel for broader browser support when needed. 

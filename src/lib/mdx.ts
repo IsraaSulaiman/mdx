@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { BlogPost, BlogPostMeta } from '@/types/blog';
+import { BlogPost, BlogPostMeta, Category, CategoryPostMeta } from '@/types/blog';
 
 const postsDirectory = path.join(process.cwd(), 'src/content/posts');
 
@@ -93,6 +93,60 @@ export function getAllPostMeta(): BlogPostMeta[] {
     });
   
   return postsMeta;
+}
+
+export function getAllCategories(): Category[] {
+  const posts = getAllPosts();
+  const categoryMap = new Map<string, number>();
+
+  posts.forEach((post) => {
+    if (post.tags) {
+      post.tags.forEach((tag) => {
+        const count = categoryMap.get(tag) || 0;
+        categoryMap.set(tag, count + 1);
+      });
+    }
+  });
+
+  return Array.from(categoryMap.entries())
+    .map(([name, postCount]) => ({
+      name,
+      slug: name.toLowerCase().replace(/\s+/g, '-'),
+      postCount,
+    }))
+    .sort((a, b) => b.postCount - a.postCount);
+}
+
+export function getPostsByCategory(categorySlug: string): CategoryPostMeta[] {
+  const posts = getAllPosts();
+  const categoryName = categorySlug.replace(/-/g, ' ');
+
+  return posts
+    .filter((post) => 
+      post.tags && post.tags.some(tag => 
+        tag.toLowerCase().replace(/\s+/g, '-') === categorySlug ||
+        tag.toLowerCase() === categoryName
+      )
+    )
+    .map((post) => ({
+      slug: post.slug,
+      frontMatter: {
+        title: post.title,
+        date: post.date,
+        excerpt: post.excerpt,
+        tags: post.tags || [],
+        author: post.author || 'Anonymous',
+      },
+      category: categoryName,
+    }))
+    .sort((post1, post2) => 
+      post1.frontMatter.date > post2.frontMatter.date ? -1 : 1
+    );
+}
+
+export function getCategoryBySlug(categorySlug: string): Category | null {
+  const categories = getAllCategories();
+  return categories.find(cat => cat.slug === categorySlug) || null;
 }
 
 function calculateReadingTime(content: string): string {

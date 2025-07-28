@@ -1,0 +1,413 @@
+---
+title: "Advanced Tailwind CSS Techniques - Beyond the Basics"
+date: "2024-01-21"
+excerpt: "Master advanced Tailwind CSS techniques including custom configurations, responsive design patterns, and component architecture."
+author: "CSS Expert"
+tags: ["css", "tailwind", "frontend", "web-development", "design"]
+---
+
+# Advanced Tailwind CSS Techniques
+
+Tailwind CSS has revolutionized how we write CSS, but there's much more to it than utility classes. Let's explore advanced techniques that will make you a Tailwind power user.
+
+## Custom Configuration
+
+Tailwind's power comes from its configurability. Let's customize it for your project:
+
+```javascript
+// tailwind.config.js
+module.exports = {
+  content: ['./src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50: '#eff6ff',
+          500: '#3b82f6',
+          900: '#1e3a8a',
+        },
+        brand: {
+          light: '#f8fafc',
+          dark: '#0f172a',
+        }
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.5s ease-in-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(100%)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+      },
+    },
+  },
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/forms'),
+  ],
+}
+```
+
+## Component Architecture
+
+Create reusable component patterns with Tailwind:
+
+### Button Component
+
+```jsx
+const Button = ({ 
+  variant = 'primary', 
+  size = 'md', 
+  children, 
+  ...props 
+}) => {
+  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+  
+  const variants = {
+    primary: 'bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500',
+    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500',
+    danger: 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500',
+  };
+  
+  const sizes = {
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-4 py-2 text-base',
+    lg: 'px-6 py-3 text-lg',
+  };
+  
+  return (
+    <button
+      className={`${baseClasses} ${variants[variant]} ${sizes[size]}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+```
+
+### Card Component
+
+```jsx
+const Card = ({ children, className = '', ...props }) => {
+  return (
+    <div
+      className={`
+        bg-white rounded-lg shadow-sm border border-gray-200 
+        hover:shadow-md transition-shadow duration-200
+        ${className}
+      `}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
+
+const CardHeader = ({ children, className = '' }) => (
+  <div className={`px-6 py-4 border-b border-gray-200 ${className}`}>
+    {children}
+  </div>
+);
+
+const CardBody = ({ children, className = '' }) => (
+  <div className={`px-6 py-4 ${className}`}>
+    {children}
+  </div>
+);
+```
+
+## Responsive Design Patterns
+
+### Mobile-First Approach
+
+```jsx
+// Mobile-first responsive design
+<div className="
+  w-full                    // Mobile: full width
+  md:w-1/2                  // Medium: half width
+  lg:w-1/3                  // Large: one-third width
+  xl:w-1/4                  // Extra large: one-fourth width
+">
+  <div className="
+    text-sm                  // Mobile: small text
+    md:text-base             // Medium: base text
+    lg:text-lg               // Large: large text
+  ">
+    Content here
+  </div>
+</div>
+```
+
+### Container Queries (Modern CSS)
+
+```css
+/* tailwind.config.js */
+module.exports = {
+  theme: {
+    extend: {
+      containerType: {
+        'inline-size': 'inline-size',
+      },
+    },
+  },
+}
+```
+
+```jsx
+<div className="container-type-inline-size">
+  <div className="
+    grid grid-cols-1 gap-4
+    @container
+    @md:grid-cols-2
+    @lg:grid-cols-3
+  ">
+    {/* Cards that respond to container size */}
+  </div>
+</div>
+```
+
+## Advanced Layout Techniques
+
+### CSS Grid with Tailwind
+
+```jsx
+// Complex grid layout
+<div className="
+  grid grid-cols-1 gap-6
+  md:grid-cols-12 md:gap-8
+  lg:gap-12
+">
+  {/* Sidebar */}
+  <aside className="
+    md:col-span-3
+    lg:col-span-2
+  ">
+    <nav className="sticky top-4">
+      {/* Navigation content */}
+    </nav>
+  </aside>
+  
+  {/* Main content */}
+  <main className="
+    md:col-span-9
+    lg:col-span-10
+  ">
+    {/* Main content */}
+  </main>
+</div>
+```
+
+### Flexbox Patterns
+
+```jsx
+// Sticky footer pattern
+<div className="min-h-screen flex flex-col">
+  <header className="flex-shrink-0">
+    {/* Header content */}
+  </header>
+  
+  <main className="flex-1">
+    {/* Main content */}
+  </main>
+  
+  <footer className="flex-shrink-0">
+    {/* Footer content */}
+  </footer>
+</div>
+```
+
+## Dark Mode
+
+Implement dark mode with Tailwind's built-in support:
+
+```jsx
+// Dark mode toggle component
+const DarkModeToggle = () => {
+  const [isDark, setIsDark] = useState(false);
+  
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDark]);
+  
+  return (
+    <button
+      onClick={() => setIsDark(!isDark)}
+      className="
+        p-2 rounded-lg
+        bg-gray-200 dark:bg-gray-700
+        text-gray-800 dark:text-gray-200
+        hover:bg-gray-300 dark:hover:bg-gray-600
+        transition-colors
+      "
+    >
+      {isDark ? '🌞' : '🌙'}
+    </button>
+  );
+};
+```
+
+### Dark Mode Classes
+
+```jsx
+// Component with dark mode support
+<div className="
+  bg-white dark:bg-gray-900
+  text-gray-900 dark:text-gray-100
+  border-gray-200 dark:border-gray-700
+  shadow-lg dark:shadow-gray-900/50
+">
+  <h2 className="
+    text-2xl font-bold
+    text-gray-900 dark:text-gray-100
+  ">
+    Title
+  </h2>
+  <p className="
+    text-gray-600 dark:text-gray-400
+  ">
+    Content
+  </p>
+</div>
+```
+
+## Animation and Transitions
+
+### Custom Animations
+
+```css
+/* Add to your CSS */
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+}
+```
+
+```jsx
+// Loading skeleton
+<div className="animate-shimmer bg-gray-200 h-4 rounded"></div>
+```
+
+### Transition Patterns
+
+```jsx
+// Smooth hover effects
+<div className="
+  transform transition-all duration-300 ease-in-out
+  hover:scale-105 hover:shadow-xl
+  active:scale-95
+">
+  <img 
+    src="/image.jpg" 
+    className="
+      w-full h-48 object-cover rounded-lg
+      transition-transform duration-300
+      hover:scale-110
+    "
+  />
+</div>
+```
+
+## Performance Optimization
+
+### Purge CSS
+
+```javascript
+// tailwind.config.js
+module.exports = {
+  content: [
+    './src/**/*.{js,ts,jsx,tsx}',
+    './public/index.html',
+  ],
+  // Safelist for dynamic classes
+  safelist: [
+    'bg-red-500',
+    'bg-green-500',
+    'bg-blue-500',
+    {
+      pattern: /bg-(red|green|blue)-(100|200|300|400|500)/,
+    },
+  ],
+}
+```
+
+### JIT Mode
+
+```javascript
+// tailwind.config.js
+module.exports = {
+  mode: 'jit', // Just-in-time mode for faster builds
+  // ... rest of config
+}
+```
+
+## Advanced Utilities
+
+### Arbitrary Values
+
+```jsx
+// Custom values
+<div className="
+  w-[200px]
+  h-[calc(100vh-4rem)]
+  bg-[#ff6b6b]
+  text-[#2d3436]
+  shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]
+">
+  Custom content
+</div>
+```
+
+### Group Hover
+
+```jsx
+// Group hover effects
+<div className="group">
+  <div className="
+    opacity-0 group-hover:opacity-100
+    transition-opacity duration-300
+  ">
+    Hover overlay
+  </div>
+  <img src="/image.jpg" className="w-full" />
+</div>
+```
+
+## Best Practices
+
+1. **Use semantic class names** with @apply for complex components
+2. **Create design tokens** in your config for consistency
+3. **Use responsive prefixes** consistently
+4. **Optimize for performance** with proper purging
+5. **Maintain accessibility** with focus states
+6. **Document your patterns** for team consistency
+
+## Conclusion
+
+Tailwind CSS is more than just utility classes. By mastering these advanced techniques, you can create maintainable, performant, and beautiful user interfaces. The key is to find the right balance between utility classes and component architecture for your specific project needs.
+
+Remember that Tailwind is a tool, and like any tool, it's most effective when used thoughtfully and consistently. 

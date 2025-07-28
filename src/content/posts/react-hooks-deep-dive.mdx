@@ -1,0 +1,130 @@
+---
+title: "React Hooks Deep Dive - Understanding useState and useEffect"
+date: "2024-01-25"
+excerpt: "A comprehensive guide to React hooks, focusing on useState and useEffect with practical examples and best practices."
+author: "React Developer"
+tags: ["react", "javascript", "hooks", "frontend", "web-development"]
+---
+
+# React Hooks Deep Dive
+
+React hooks have revolutionized how we write functional components. In this post, we'll explore the two most fundamental hooks: `useState` and `useEffect`.
+
+## Understanding useState
+
+The `useState` hook allows functional components to manage state:
+
+```javascript
+import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>
+        Increment
+      </button>
+    </div>
+  );
+}
+```
+
+### Key Points about useState
+
+1. **Initial Value**: The argument passed to `useState` is the initial state
+2. **State Setter**: The second element is a function to update the state
+3. **Re-renders**: State changes trigger component re-renders
+4. **Functional Updates**: You can pass a function to the setter for complex updates
+
+## Understanding useEffect
+
+The `useEffect` hook handles side effects in functional components:
+
+```javascript
+import { useState, useEffect } from 'react';
+
+function UserProfile({ userId }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchUser() {
+      setLoading(true);
+      const response = await fetch(`/api/users/${userId}`);
+      const userData = await response.json();
+      setUser(userData);
+      setLoading(false);
+    }
+
+    fetchUser();
+  }, [userId]); // Dependency array
+
+  if (loading) return <div>Loading...</div>;
+  return <div>{user?.name}</div>;
+}
+```
+
+### useEffect Dependencies
+
+The dependency array controls when the effect runs:
+
+- **Empty array `[]`**: Runs only once after mount
+- **No array**: Runs after every render
+- **With dependencies**: Runs when dependencies change
+
+## Best Practices
+
+1. **Always include dependencies** in the dependency array
+2. **Use multiple useEffect calls** for different concerns
+3. **Clean up side effects** when components unmount
+4. **Avoid infinite loops** by carefully managing dependencies
+
+## Common Patterns
+
+### Custom Hooks
+
+```javascript
+function useLocalStorage(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      return initialValue;
+    }
+  });
+
+  const setValue = value => {
+    try {
+      setStoredValue(value);
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  return [storedValue, setValue];
+}
+```
+
+### Effect Cleanup
+
+```javascript
+useEffect(() => {
+  const subscription = someAPI.subscribe(data => {
+    setData(data);
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
+}, []);
+```
+
+## Conclusion
+
+React hooks provide a powerful and intuitive way to manage state and side effects in functional components. Understanding `useState` and `useEffect` is fundamental to building modern React applications.
+
+Remember to always follow the Rules of Hooks and use the React DevTools to debug your hook usage effectively. 

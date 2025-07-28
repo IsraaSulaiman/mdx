@@ -1,0 +1,322 @@
+---
+title: "Next.js 13 App Router - The Future of React Routing"
+date: "2024-01-23"
+excerpt: "Explore the new App Router in Next.js 13, including server components, layouts, loading states, and error boundaries."
+author: "Next.js Developer"
+tags: ["nextjs", "react", "web-development", "frontend", "routing"]
+---
+
+# Next.js 13 App Router
+
+Next.js 13 introduced the App Router, a new paradigm for building React applications with improved performance, better developer experience, and enhanced routing capabilities.
+
+## What is the App Router?
+
+The App Router is a new routing system built on React Server Components and the file system. It provides:
+
+- **Server Components by default** for better performance
+- **Nested layouts** for shared UI
+- **Loading states** for better UX
+- **Error boundaries** for graceful error handling
+- **Streaming** for faster page loads
+
+## File System Structure
+
+The App Router uses a file-based routing system in the `app` directory:
+
+```
+app/
+├── layout.tsx          # Root layout
+├── page.tsx           # Home page
+├── globals.css        # Global styles
+├── blog/
+│   ├── layout.tsx     # Blog layout
+│   ├── page.tsx       # Blog listing
+│   └── [slug]/
+│       └── page.tsx   # Individual blog post
+└── api/
+    └── posts/
+        └── route.ts   # API route
+```
+
+## Server Components
+
+Server Components are the default in the App Router:
+
+```tsx
+// app/blog/page.tsx
+import { getPosts } from '@/lib/posts';
+
+export default async function BlogPage() {
+  const posts = await getPosts(); // This runs on the server
+
+  return (
+    <div>
+      <h1>Blog Posts</h1>
+      {posts.map(post => (
+        <article key={post.id}>
+          <h2>{post.title}</h2>
+          <p>{post.excerpt}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+```
+
+### Benefits of Server Components
+
+1. **Better Performance**: No JavaScript sent to client
+2. **Direct Database Access**: No need for API routes
+3. **SEO Friendly**: Content rendered on server
+4. **Smaller Bundle Size**: Less client-side code
+
+## Layouts
+
+Layouts allow you to share UI between routes:
+
+```tsx
+// app/layout.tsx
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <header>
+          <nav>
+            <a href="/">Home</a>
+            <a href="/blog">Blog</a>
+          </nav>
+        </header>
+        <main>{children}</main>
+        <footer>© 2024 My App</footer>
+      </body>
+    </html>
+  );
+}
+```
+
+### Nested Layouts
+
+You can create nested layouts for specific sections:
+
+```tsx
+// app/blog/layout.tsx
+export default function BlogLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="blog-layout">
+      <aside>
+        <h2>Blog Categories</h2>
+        <ul>
+          <li>Technology</li>
+          <li>Design</li>
+          <li>Development</li>
+        </ul>
+      </aside>
+      <main>{children}</main>
+    </div>
+  );
+}
+```
+
+## Loading States
+
+Create loading UI for better user experience:
+
+```tsx
+// app/blog/loading.tsx
+export default function Loading() {
+  return (
+    <div className="loading">
+      <div className="skeleton">
+        <div className="skeleton-title"></div>
+        <div className="skeleton-text"></div>
+        <div className="skeleton-text"></div>
+      </div>
+    </div>
+  );
+}
+```
+
+## Error Boundaries
+
+Handle errors gracefully with error boundaries:
+
+```tsx
+// app/blog/error.tsx
+'use client';
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
+  return (
+    <div className="error">
+      <h2>Something went wrong!</h2>
+      <p>{error.message}</p>
+      <button onClick={reset}>Try again</button>
+    </div>
+  );
+}
+```
+
+## Client Components
+
+When you need interactivity, use Client Components:
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+
+export default function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>
+        Increment
+      </button>
+    </div>
+  );
+}
+```
+
+## Data Fetching
+
+The App Router provides multiple ways to fetch data:
+
+### Server Components
+
+```tsx
+// app/posts/page.tsx
+async function getPosts() {
+  const res = await fetch('https://api.example.com/posts');
+  return res.json();
+}
+
+export default async function PostsPage() {
+  const posts = await getPosts();
+  
+  return (
+    <div>
+      {posts.map(post => (
+        <PostCard key={post.id} post={post} />
+      ))}
+    </div>
+  );
+}
+```
+
+### Route Handlers
+
+```tsx
+// app/api/posts/route.ts
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  const posts = await getPostsFromDatabase();
+  return NextResponse.json(posts);
+}
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const post = await createPost(body);
+  return NextResponse.json(post, { status: 201 });
+}
+```
+
+## Streaming
+
+Enable streaming for faster page loads:
+
+```tsx
+// app/blog/page.tsx
+import { Suspense } from 'react';
+import PostList from './PostList';
+import Loading from './loading';
+
+export default function BlogPage() {
+  return (
+    <div>
+      <h1>Blog</h1>
+      <Suspense fallback={<Loading />}>
+        <PostList />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+## Metadata API
+
+Generate dynamic metadata for SEO:
+
+```tsx
+// app/blog/[slug]/page.tsx
+import { Metadata } from 'next';
+
+type Props = {
+  params: { slug: string };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const post = await getPost(params.slug);
+  
+  return {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+    },
+  };
+}
+
+export default async function PostPage({ params }: Props) {
+  const post = await getPost(params.slug);
+  
+  return (
+    <article>
+      <h1>{post.title}</h1>
+      <div>{post.content}</div>
+    </article>
+  );
+}
+```
+
+## Migration from Pages Router
+
+To migrate from the Pages Router:
+
+1. **Create `app` directory** alongside `pages`
+2. **Move pages** to the new structure
+3. **Update imports** to use new conventions
+4. **Add layouts** for shared UI
+5. **Convert to Server Components** where possible
+
+## Best Practices
+
+1. **Use Server Components by default**
+2. **Create layouts for shared UI**
+3. **Implement loading states**
+4. **Handle errors gracefully**
+5. **Use streaming for better performance**
+6. **Generate metadata for SEO**
+
+## Conclusion
+
+The App Router represents a significant evolution in Next.js, providing better performance, developer experience, and routing capabilities. By embracing Server Components, layouts, and the new file system structure, you can build faster, more maintainable applications.
+
+The App Router is the future of Next.js, and understanding its concepts is essential for modern React development. 

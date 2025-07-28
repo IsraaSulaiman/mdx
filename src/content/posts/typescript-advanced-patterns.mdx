@@ -1,0 +1,259 @@
+---
+title: "TypeScript Advanced Patterns - Generics, Utility Types, and More"
+date: "2024-01-24"
+excerpt: "Explore advanced TypeScript patterns including generics, utility types, conditional types, and mapped types with practical examples."
+author: "TypeScript Expert"
+tags: ["typescript", "javascript", "programming", "web-development", "advanced"]
+---
+
+# TypeScript Advanced Patterns
+
+TypeScript offers powerful features that go beyond basic type annotations. In this post, we'll explore advanced patterns that can make your code more flexible and type-safe.
+
+## Generics
+
+Generics allow you to create reusable components that work with multiple types:
+
+```typescript
+// Generic function
+function identity<T>(arg: T): T {
+  return arg;
+}
+
+// Generic interface
+interface Container<T> {
+  value: T;
+  getValue(): T;
+}
+
+// Generic class
+class Stack<T> {
+  private items: T[] = [];
+
+  push(item: T): void {
+    this.items.push(item);
+  }
+
+  pop(): T | undefined {
+    return this.items.pop();
+  }
+
+  peek(): T | undefined {
+    return this.items[this.items.length - 1];
+  }
+}
+```
+
+### Constraining Generics
+
+You can constrain generics to specific types:
+
+```typescript
+interface Lengthwise {
+  length: number;
+}
+
+function logLength<T extends Lengthwise>(arg: T): T {
+  console.log(arg.length);
+  return arg;
+}
+
+// This works
+logLength("hello"); // string has length property
+logLength([1, 2, 3]); // array has length property
+
+// This would error
+// logLength(123); // number doesn't have length property
+```
+
+## Utility Types
+
+TypeScript provides built-in utility types for common type transformations:
+
+### Partial<T>
+
+Makes all properties optional:
+
+```typescript
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+type PartialUser = Partial<User>;
+// Equivalent to:
+// {
+//   id?: number;
+//   name?: string;
+//   email?: string;
+// }
+```
+
+### Required<T>
+
+Makes all properties required:
+
+```typescript
+interface Config {
+  apiKey?: string;
+  timeout?: number;
+}
+
+type RequiredConfig = Required<Config>;
+// Equivalent to:
+// {
+//   apiKey: string;
+//   timeout: number;
+// }
+```
+
+### Pick<T, K>
+
+Selects specific properties:
+
+```typescript
+type UserName = Pick<User, 'name'>;
+// Equivalent to: { name: string; }
+```
+
+### Omit<T, K>
+
+Excludes specific properties:
+
+```typescript
+type UserWithoutId = Omit<User, 'id'>;
+// Equivalent to: { name: string; email: string; }
+```
+
+## Conditional Types
+
+Conditional types allow you to create types that depend on other types:
+
+```typescript
+type NonNullable<T> = T extends null | undefined ? never : T;
+
+type StringOrNumber<T> = T extends string ? string : number;
+
+// Usage
+type Result1 = StringOrNumber<string>; // string
+type Result2 = StringOrNumber<number>; // number
+type Result3 = StringOrNumber<boolean>; // number
+```
+
+### Infer Keyword
+
+The `infer` keyword allows you to extract types from other types:
+
+```typescript
+type ReturnType<T> = T extends (...args: any[]) => infer R ? R : any;
+
+type ArrayElement<T> = T extends (infer U)[] ? U : never;
+
+// Usage
+type FunctionReturn = ReturnType<() => string>; // string
+type ArrayType = ArrayElement<string[]>; // string
+```
+
+## Mapped Types
+
+Mapped types allow you to create new types by transforming existing ones:
+
+```typescript
+type Readonly<T> = {
+  readonly [P in keyof T]: T[P];
+};
+
+type Mutable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
+
+// Usage
+type ReadonlyUser = Readonly<User>;
+type MutableUser = Mutable<ReadonlyUser>;
+```
+
+## Template Literal Types
+
+Template literal types allow you to create string literal types:
+
+```typescript
+type EventName<T extends string> = `${T}Changed`;
+type Concat<S1 extends string, S2 extends string> = `${S1}${S2}`;
+
+// Usage
+type NameChanged = EventName<'name'>; // "nameChanged"
+type FullName = Concat<'John', 'Doe'>; // "JohnDoe"
+```
+
+## Advanced Examples
+
+### Type-Safe API Client
+
+```typescript
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  message: string;
+}
+
+class ApiClient {
+  async get<T>(url: string): Promise<ApiResponse<T>> {
+    const response = await fetch(url);
+    return response.json();
+  }
+
+  async post<T, U>(url: string, data: T): Promise<ApiResponse<U>> {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  }
+}
+```
+
+### Type-Safe Event Emitter
+
+```typescript
+type EventMap = {
+  userCreated: { id: number; name: string };
+  userDeleted: { id: number };
+  error: { message: string };
+};
+
+class EventEmitter<T extends EventMap> {
+  private listeners: {
+    [K in keyof T]?: Array<(data: T[K]) => void>;
+  } = {};
+
+  on<K extends keyof T>(event: K, listener: (data: T[K]) => void): void {
+    if (!this.listeners[event]) {
+      this.listeners[event] = [];
+    }
+    this.listeners[event]!.push(listener);
+  }
+
+  emit<K extends keyof T>(event: K, data: T[K]): void {
+    const eventListeners = this.listeners[event];
+    if (eventListeners) {
+      eventListeners.forEach(listener => listener(data));
+    }
+  }
+}
+```
+
+## Best Practices
+
+1. **Use generics for reusable components**
+2. **Leverage utility types for common transformations**
+3. **Use conditional types for complex type logic**
+4. **Keep type definitions close to their usage**
+5. **Use template literal types for string manipulation**
+
+## Conclusion
+
+Advanced TypeScript patterns provide powerful tools for creating flexible, type-safe code. By mastering generics, utility types, conditional types, and mapped types, you can build more robust and maintainable applications.
+
+Remember that TypeScript's type system is designed to help you catch errors at compile time, so use these patterns to make your code more expressive and safer. 

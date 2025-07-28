@@ -18,10 +18,10 @@ export default function Home() {
             Read Blog
           </Link>
           <Link
-            href="/blog"
+            href="/categories"
             className="inline-block border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
           >
-            View All Posts
+            Browse Categories
           </Link>
         </div>
       </main>

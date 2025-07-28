@@ -1,5 +1,6 @@
 import { getAllPostMeta } from '@/lib/mdx';
 import PostCard from '@/components/PostCard';
+import Link from 'next/link';
 
 export default function BlogPage() {
   const posts = getAllPostMeta();
@@ -9,9 +10,15 @@ export default function BlogPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Blog</h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-600 mb-6">
             Thoughts, ideas, and insights about technology and development
           </p>
+          <Link
+            href="/categories"
+            className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          >
+            Browse by Category
+          </Link>
         </div>
 
         {posts.length === 0 ? (
